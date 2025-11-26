@@ -7,14 +7,20 @@ const MIN_LENGTH = 3;
 const MAX_REPEATED_CHARS = 10;
 
 /**
+ * 완성형 한글 체크 (가-힣)
+ */
+function hasCompleteHangul(text: string): boolean {
+  return /[가-힣]/.test(text);
+}
+
+/**
  * 자모음만 있는지 체크 (ㄱ-ㅎ, ㅏ-ㅣ)
  */
 function hasOnlyJamoeum(text: string): boolean {
   const jamoeumRegex = /[ㄱ-ㅎㅏ-ㅣ]/;
-  const completeHangulRegex = /[가-힣]/;
   
   // 자모음이 있으면서 완성형 한글이 없으면 true
-  return jamoeumRegex.test(text) && !completeHangulRegex.test(text);
+  return jamoeumRegex.test(text) && !hasCompleteHangul(text);
 }
 
 /**
@@ -93,34 +99,34 @@ export function validateText(text: string): ValidationResult {
 
   // 줄바꿈 체크
   if (hasLineBreak(text)) {
-    return { isValid: false, errorMessage: '한 줄로 입력해주세요.' };
+    return { isValid: false, errorMessage: '줄바꿈은 입력할 수 없습니다.' };
   }
 
   // 최대 길이 체크
   if (!meetsMaxLength(text)) {
-    return { isValid: false, errorMessage: '50자 이내로 입력해주세요.' };
+    return { isValid: false, errorMessage: `최대 ${MAX_LENGTH}자까지 입력 가능합니다.` };
   }
 
   const trimmedText = trimText(text);
 
   // 공백만 있는지 체크
   if (!trimmedText) {
-    return { isValid: false, errorMessage: '내용을 입력해주세요.' };
+    return { isValid: false, errorMessage: '공백만 입력할 수 없습니다.' };
   }
 
   // 공백 제외 최소 길이 체크
   if (!meetsMinLength(trimmedText)) {
-    return { isValid: false, errorMessage: '공백을 제외하고 3자 이상 입력해주세요.' };
+    return { isValid: false, errorMessage: `공백을 제외하고 최소 ${MIN_LENGTH}자 이상 입력해주세요.` };
   }
 
   // 자모음만 있는지 체크
   if (hasOnlyJamoeum(trimmedText)) {
-    return { isValid: false, errorMessage: '완성된 단어를 입력해주세요.' };
+    return { isValid: false, errorMessage: '자음이나 모음만 입력할 수 없습니다.' };
   }
 
   // 동일 문자 반복 체크
   if (hasExcessiveRepetition(trimmedText)) {
-    return { isValid: false, errorMessage: '같은 글자를 10자 이상 쓸 수 없어요.' };
+    return { isValid: false, errorMessage: '동일한 문자를 10자 이상 반복할 수 없습니다.' };
   }
 
   return { isValid: true };

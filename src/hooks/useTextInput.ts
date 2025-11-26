@@ -27,7 +27,6 @@ interface UseTextInputReturn {
 export function useTextInput(initialValue: string = ''): UseTextInputReturn {
   const [value, setValue] = useState(initialValue);
   const [touched, setTouched] = useState(false);
-  const [attemptedExceedMax, setAttemptedExceedMax] = useState(false);
 
   const trimmedValue = trimText(value);
   const characterCount = getCharacterCountDisplay(value);
@@ -37,20 +36,10 @@ export function useTextInput(initialValue: string = ''): UseTextInputReturn {
   const isSubmittable = validation.isValid;
 
   // 입력 중 에러 표시 로직
-  let currentError: string | undefined;
-  let hasError = false;
-
-  if (touched && value.length > 0) {
-    if (!validation.isValid) {
-      // 유효성 검사 실패 시 에러 메시지 표시
-      currentError = validation.errorMessage;
-      hasError = true;
-    } else if (value.length === TEXT_VALIDATION.MAX_LENGTH && attemptedExceedMax) {
-      // 50자 도달하고 더 입력하려고 시도했을 때만 메시지 표시
-      currentError = '50자 이내로 입력해주세요.';
-      hasError = true;
-    }
-  }
+  // 1. 50자에 도달했을 때
+  // 2. 입력된 내용이 있고, 유효하지 않을 때 (자모음만, 반복 등)
+  const shouldShowError = touched && value.length > 0 && !validation.isValid;
+  const hasError = shouldShowError;
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     let newValue = e.target.value;
@@ -58,20 +47,12 @@ export function useTextInput(initialValue: string = ''): UseTextInputReturn {
     // 줄바꿈 제거
     newValue = newValue.replace(/[\n\r]/g, '');
     
-    // 최대 길이 초과 시도 감지
-    const exceededMax = newValue.length > TEXT_VALIDATION.MAX_LENGTH;
-    
     // 최대 길이 제한
-    if (exceededMax) {
+    if (newValue.length > TEXT_VALIDATION.MAX_LENGTH) {
       newValue = newValue.slice(0, TEXT_VALIDATION.MAX_LENGTH);
-      setAttemptedExceedMax(true);
-    } else if (newValue.length < TEXT_VALIDATION.MAX_LENGTH) {
-      // 50자 미만으로 줄어들면 플래그 리셋
-      setAttemptedExceedMax(false);
     }
     
     setValue(newValue);
-    
     if (!touched) {
       setTouched(true);
     }
@@ -80,7 +61,6 @@ export function useTextInput(initialValue: string = ''): UseTextInputReturn {
   const reset = useCallback(() => {
     setValue('');
     setTouched(false);
-    setAttemptedExceedMax(false);
   }, []);
 
   return {
@@ -89,7 +69,7 @@ export function useTextInput(initialValue: string = ''): UseTextInputReturn {
     characterCount,
     validation,
     hasError,
-    errorMessage: currentError,
+    errorMessage: hasError ? validation.errorMessage : undefined,
     isSubmittable,
     handleChange,
     setValue,

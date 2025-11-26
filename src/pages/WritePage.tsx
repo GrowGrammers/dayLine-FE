@@ -7,7 +7,7 @@ import {
 import { getToday, formatDate } from '../utils/dateUtils';
 import { useTextInput } from '../hooks/useTextInput';
 import { analyzeDiaryText } from '../services/gpt';
-// import { saveDiary } from '../services/diary'; // TODO: 백엔드 완성 후 활성화
+//import { saveDiary } from '../services/diary';
 //import { adaptive } from '@toss/tds-colors';
 
 export default function Page() {
