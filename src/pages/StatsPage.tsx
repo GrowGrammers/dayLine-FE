@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState /* , useEffect */ } from 'react';
 import { Tab, ListHeader, Text, Asset, Button } from '@toss/tds-mobile';
 import { adaptive } from '@toss/tds-colors';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -9,6 +9,7 @@ import { GraphView } from '../components/stats/GraphView';
 import { StatsDetailView } from '../components/stats/StatsDetailView';
 import type { DiaryEntry } from '../types/diary';
 import { useDiaryData } from '../hooks/useDiaryData';
+// import { getMonthlyDiaries } from '../services/diary';
 
 export default function Page() {
   const { getAllData, getRecentEntry, getEntryByDate } = useDiaryData();
@@ -24,6 +25,25 @@ export default function Page() {
 
   // 2025년 1월 ~ 12월 (0 ~ 11)
   const months = Array.from({ length: 12 }, (_, i) => i);
+
+  // 백엔드 API로 받아온 월별 데이터
+  // const [monthlyData, setMonthlyData] = useState<DiaryEntry[]>([]);
+  
+  // 월 변경 시 해당 월의 데이터를 백엔드에서 가져옴
+  // useEffect(() => {
+  //   const fetchMonthData = async () => {
+  //     try {
+  //       // currentMonth는 0-based이므로 +1 (1-12월)
+  //       const data = await getMonthlyDiaries(currentMonth + 1);
+  //       setMonthlyData(data);
+  //     } catch (error) {
+  //       console.error('월별 데이터 조회 실패:', error);
+  //       setMonthlyData([]);
+  //     }
+  //   };
+  //   
+  //   fetchMonthData();
+  // }, [currentMonth]);
 
   // 선택된 날짜 (YYYY-MM-DD)
   // 초기값으로 가장 최근 데이터 설정
@@ -41,6 +61,10 @@ export default function Page() {
     setSelectedDate(date);
     const entry = getEntryByDate(date);
     setSelectedEntry(entry);
+    
+    // 백엔드 API 사용 시
+    // const entry = monthlyData.find(d => d.date === date) || null;
+    // setSelectedEntry(entry);
   };
 
   // 1. 완료 화면 렌더링 (showComplete가 true일 때)
@@ -134,7 +158,7 @@ export default function Page() {
               <GraphView 
                 year={currentYear} 
                 month={month} 
-                data={allData} 
+                data={allData} // 백엔드 API 사용 시: data={monthlyData}
                 selectedDate={selectedDate}
                 onSelectDate={handleSelectDate}
               />
@@ -157,7 +181,7 @@ export default function Page() {
               <CalendarView 
                 year={currentYear} 
                 month={month} 
-                data={allData} 
+                data={allData} // 백엔드 API 사용 시: data={monthlyData}
                 selectedDate={selectedDate}
                 onSelectDate={handleSelectDate}
               />
