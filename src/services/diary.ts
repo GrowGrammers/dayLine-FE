@@ -27,41 +27,33 @@ interface DiaryCreateRequest {
 }
 
 /**
- * 일기 목록 조회 (전체 조회 후 클라이언트에서 월별 필터링)
+ * 일기 목록 조회 (백엔드에서 월별 필터링)
  * 
- * @param year 연도 (선택적)
- * @param month 월 (1-12, 선택적)
+ * @param month 월 (1-12)
  * @returns 일기 목록
  */
 export async function getMonthlyDiaries(
-  year?: number,
-  month?: number
+  month: number
 ): Promise<DiaryEntry[]> {
   const userKey = getUserKey();
   if (!userKey) {
     throw new Error('로그인이 필요합니다.');
   }
 
-  // 백엔드 API: GET /api/v1/scores?userId={userId}
+  // 백엔드 API: GET /api/v1/scores?userId={userId}&month={month}
   const response = await apiRequest<DiaryResDto[]>(
-    `/api/v1/scores?userId=${userKey}`,
+    `/api/v1/scores?userId=${userKey}&month=${month}`,
     {
       method: 'GET',
     }
   );
 
   // DTO를 클라이언트 인터페이스로 변환
-  let diaries: DiaryEntry[] = response.map(dto => ({
+  const diaries: DiaryEntry[] = response.map(dto => ({
     date: dto.date,
     content: dto.line,
     emotion: dto.score,
   }));
-
-  // 월별 필터링 (옵션)
-  if (year !== undefined && month !== undefined) {
-    const targetMonth = `${year}-${String(month).padStart(2, '0')}`;
-    diaries = diaries.filter(diary => diary.date.startsWith(targetMonth));
-  }
 
   return diaries;
 }
@@ -79,9 +71,10 @@ export async function getDiaryByDate(date: string): Promise<DiaryEntry | null> {
   }
 
   try {
-    // 전체 일기 조회 후 해당 날짜 필터링
+    // 날짜에서 월 추출하여 해당 월의 일기 조회
+    const month = parseInt(date.split('-')[1], 10);
     const response = await apiRequest<DiaryResDto[]>(
-      `/api/v1/scores?userId=${userKey}`,
+      `/api/v1/scores?userId=${userKey}&month=${month}`,
       {
         method: 'GET',
       }

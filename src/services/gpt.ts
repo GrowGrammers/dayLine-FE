@@ -2,7 +2,7 @@
  * GPT API 서비스
  */
 
-export interface DiaryAnalysisResponse {
+interface DiaryAnalysisResponse {
   line: string;
   score: number;
 }
