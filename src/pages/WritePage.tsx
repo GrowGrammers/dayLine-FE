@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   TextField,
@@ -33,7 +33,7 @@ export default function Page() {
   const { mutateAsync: saveDiaryMutation } = useSaveDiary();
   
   // 오늘 날짜 가져오기
-  const today = getToday();
+  const today = useMemo(() => getToday(), []);
   const formattedDate = formatDate(today);
 
   // 페이지 진입 시 데이터 갱신 (뒤로가기로 왔을 때 대비)
