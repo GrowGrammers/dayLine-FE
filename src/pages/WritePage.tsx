@@ -6,6 +6,7 @@ import {
 } from '@toss/tds-mobile';
 import { getToday, formatDate } from '../utils/dateUtils';
 import { useTextInput } from '../hooks/useTextInput';
+import { useHasTodayDiary } from '../hooks/useDiaryData';
 import { analyzeDiaryText } from '../services/gpt';
 import { saveDiary } from '../services/diary';
 //import { adaptive } from '@toss/tds-colors';
@@ -23,6 +24,9 @@ export default function Page() {
     isSubmittable,
     handleChange,
   } = useTextInput();
+  
+  // 오늘 작성 여부 확인
+  const { hasTodayDiary, isLoading: isChecking } = useHasTodayDiary();
   
   // 오늘 날짜 가져오기
   const today = getToday();
@@ -92,7 +96,8 @@ export default function Page() {
           labelOption="sustain"
           value={value}
           onChange={handleChange}
-          placeholder="50자 이내로 입력"
+          placeholder={hasTodayDiary ? "오늘의 일기를 이미 작성했어요" : "50자 이내로 입력"}
+          disabled={hasTodayDiary || isChecking}
           style={{ textAlign: 'left' }}
         />
         <div style={{ 
@@ -101,15 +106,15 @@ export default function Page() {
           color: hasError ? '#f04452' : '#8b95a1',
           textAlign: 'right'
         }}>
-          {errorMessage || characterCount}
+          {hasTodayDiary ? '내일 또 만나요!' : (errorMessage || characterCount)}
         </div>
       </div>
       <Button 
         display="block" 
-        disabled={!isSubmittable || isLoading} 
+        disabled={!isSubmittable || isLoading || hasTodayDiary || isChecking} 
         onClick={handleConfirm}
       >
-        {isLoading ? '분석 중...' : '확인'}
+        {hasTodayDiary ? '작성 완료' : (isLoading ? '분석 중...' : '확인')}
       </Button>
     </div>
   );
