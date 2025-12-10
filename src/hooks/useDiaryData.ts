@@ -50,13 +50,14 @@ export const useSaveDiary = () => {
 
   return useMutation({
     mutationFn: saveDiary,
-    onSuccess: (_, variables) => {
-      // 저장된 일기의 날짜를 파싱하여 해당 월의 캐시를 무효화
+    onSuccess: async (_, variables) => {
+      // 저장된 일기의 날짜를 파싱하여 해당 월의 캐시를 무효화하고
+      // 데이터가 다시 로드될 때까지 기다림 (StatsPage 진입 시 최신 데이터 보장)
       const date = new Date(variables.date);
       const year = date.getFullYear();
       const month = date.getMonth();
       
-      queryClient.invalidateQueries({ 
+      await queryClient.invalidateQueries({ 
         queryKey: DIARY_KEYS.monthly(year, month) 
       });
     },
