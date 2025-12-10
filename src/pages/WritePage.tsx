@@ -192,7 +192,7 @@ export default function Page() {
           onClick={handleConfirm}
           variant={hasTodayDiary ? "weak" : "fill"}
         >
-          {hasTodayDiary ? '그래프 보러가기' : (isLoading ? '분석 중...' : '작성 완료')}
+          {hasTodayDiary ? '그래프를 확인해요요' : (isLoading ? '분석 중...' : '작성 완료')}
         </Button>
       </div>
 
