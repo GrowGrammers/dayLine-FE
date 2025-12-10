@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Tab, ListHeader, Text, Asset, Button } from '@toss/tds-mobile';
 import { adaptive } from '@toss/tds-colors';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -8,67 +8,41 @@ import { CalendarView } from '../components/stats/CalendarView';
 import { GraphView } from '../components/stats/GraphView';
 import { StatsDetailView } from '../components/stats/StatsDetailView';
 import type { DiaryEntry } from '../types/diary';
-import { getMonthlyDiaries } from '../services/diary';
+import { useMonthlyDiaries } from '../hooks/useDiaryData';
 
 export default function Page() {
-  const today = new Date();
-  const currentYear = today.getFullYear();
-  const [currentMonth, setCurrentMonth] = useState(today.getMonth()); // 0-based index
-
   // true면 완료 화면, false면 통계 화면을 보여줍니다.
   const [showComplete, setShowComplete] = useState(true);
   const [selectedTab, setSelectedTab] = useState(0); // 0: 그래프, 1: 달력
   
+  // 현재 보여줄 년월
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const [currentMonth, setCurrentMonth] = useState(today.getMonth()); // 0-based index
+
   // 1월 ~ 12월 (0 ~ 11)
   const months = Array.from({ length: 12 }, (_, i) => i);
 
-  // 월별 데이터 캐싱 (monthIndex -> data)
-  const [cachedData, setCachedData] = useState<Record<number, DiaryEntry[]>>({});
-  
+  // 백엔드 API로 받아온 월별 데이터 (React Query)
+  const { data: monthlyData = [] } = useMonthlyDiaries(currentYear, currentMonth);
+
   // 선택된 날짜 (YYYY-MM-DD)
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>('');
   
-  // 월 변경 시 해당 월의 데이터를 백엔드에서 가져옴
+  // 선택된 날짜의 일기 데이터
+  const selectedEntry: DiaryEntry | null = monthlyData.find(d => d.date === selectedDate) || null;
+
+  // 데이터 로드 시 초기 선택 날짜 설정 (가장 최근 데이터)
   useEffect(() => {
-    const fetchMonthData = async () => {
-      // 이미 데이터가 있으면 다시 부르지 않음 (옵션) -> 하지만 최신 데이터 갱신을 위해 부르는게 나을 수 있음
-      // 여기서는 매번 부르거나, 간단한 캐싱 적용
-      // if (cachedData[currentMonth]) return;
-
-      try {
-        // currentMonth는 0-based이므로 +1 (1-12월)
-        const data = await getMonthlyDiaries(currentMonth + 1);
-        setCachedData(prev => ({
-          ...prev,
-          [currentMonth]: data
-        }));
-
-        // 데이터가 있으면 해당 월의 가장 최근 데이터 선택
-        if (data && data.length > 0) {
-          const recent = [...data].sort((a, b) => 
-            new Date(b.date).getTime() - new Date(a.date).getTime()
-          )[0];
-          setSelectedDate(recent.date);
-        } else {
-          setSelectedDate(null);
-        }
-      } catch (error) {
-        console.error('월별 데이터 조회 실패:', error);
-        // 에러 시 빈 배열 처리 혹은 에러 UI
+    if (monthlyData.length > 0 && !selectedDate) {
+      // 날짜 내림차순 정렬 후 첫 번째
+      const sorted = [...monthlyData].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      if (sorted.length > 0) {
+        // eslint-disable-next-line
+        setSelectedDate(sorted[0].date);
       }
-    };
-    
-    fetchMonthData();
-  }, [currentMonth]);
-
-  // 선택된 날짜에 해당하는 일기 항목 찾기
-  const selectedEntry = useMemo(() => {
-    if (!selectedDate) return null;
-    const monthIndex = new Date(selectedDate).getMonth();
-    // 해당 월의 데이터에서 찾기 (cachedData에 없을 수도 있으니 주의)
-    const data = cachedData[monthIndex] || [];
-    return data.find(d => d.date === selectedDate) || null;
-  }, [selectedDate, cachedData]);
+    }
+  }, [monthlyData, selectedDate]);
 
   // 날짜 선택 핸들러
   const handleSelectDate = (date: string) => {
@@ -166,7 +140,7 @@ export default function Page() {
               <GraphView 
                 year={currentYear} 
                 month={month} 
-                data={cachedData[month] || []}
+                data={month === currentMonth ? monthlyData : []} // 현재 월 데이터만 전달
                 selectedDate={selectedDate}
                 onSelectDate={handleSelectDate}
               />
@@ -189,7 +163,7 @@ export default function Page() {
               <CalendarView 
                 year={currentYear} 
                 month={month} 
-                data={cachedData[month] || []}
+                data={month === currentMonth ? monthlyData : []} // 현재 월 데이터만 전달
                 selectedDate={selectedDate}
                 onSelectDate={handleSelectDate}
               />
@@ -198,7 +172,7 @@ export default function Page() {
         </Swiper>
       )}
       
-      <StatsDetailView entry={selectedEntry} selectedDate={selectedDate || ''} />
+      <StatsDetailView entry={selectedEntry} selectedDate={selectedDate} />
     </>
   );
 }

@@ -13,6 +13,7 @@
   "dependencies": {
     "@apps-in-toss/web-framework": "^1.4.6",
     "@emotion/react": "^11.14.0",
+    "@tanstack/react-query": "^5.90.12",
     "@toss/tds-mobile": "^2.1.2",
     "@toss/tds-mobile-ait": "^2.1.2",
     "react": "^18.3.1",
