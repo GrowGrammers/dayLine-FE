@@ -15,7 +15,7 @@ export const AdPromotionBottomSheet = ({
     <BottomSheet style={{ backgroundColor: "#fff" }}
       header={
         <BottomSheet.Header>
-          광고를 보면 감정 그래프를 확인할 수 있어요
+          광고를 보는 동안 AI가 감정을 분석해요
         </BottomSheet.Header>
       }
       headerDescription={

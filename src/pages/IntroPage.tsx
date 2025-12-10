@@ -77,7 +77,7 @@ export default function Page() {
       </div>
       
       <Button display="block" onClick={handleLogin} disabled={isLoading}>
-        {isLoading ? '로그인 중...' : '다음'}
+        {isLoading ? '로그인하고 있어요' : '시작하기'}
       </Button>
     </div>
   );

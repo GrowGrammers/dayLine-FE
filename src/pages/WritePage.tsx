@@ -105,14 +105,14 @@ export default function Page() {
         if (error.message.includes('로그인')) {
           alert('로그인이 필요해요.');
         } else if (error.message.includes('GPT')) {
-          alert('일기 분석 중 오류가 발생했어요. 다시 시도해주세요.');
+          alert('일기 분석에 실패했어요. 다시 시도해주세요.');
         } else if (error.message.includes('네트워크')) {
           alert('네트워크 연결을 확인해주세요.');
         } else {
-          alert('저장 중 오류가 발생했어요. 다시 시도해주세요.');
+          alert('저장에 실패했어요. 다시 시도해주세요.');
         }
       } else {
-        alert('알 수 없는 오류가 발생했어요. 다시 시도해주세요.');
+        alert('알 수 없는 오류가 있어요. 다시 시도해주세요.');
       }
     } finally {
       setIsLoading(false);
@@ -141,7 +141,7 @@ export default function Page() {
             일기를 분석하고 있어요
           </Text>
           <Text typography="t6" color={adaptive.grey600}>
-            잠시만 기다려주세요...
+            잠시만 기다려주세요
           </Text>
           {/* 광고가 들어갈 자리 */}
           <div style={{
@@ -161,9 +161,9 @@ export default function Page() {
         </div>
       )}
 
-      <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
         {/* 숫자키패드 사용을 위해서는 type="number" 대신 inputMode="numeric"를 사용해주세요. */}
-        <div>
+        <div style={{ flex: 1 }}>
           <TextField.Clearable
             variant="box"
             hasError={hasError}
@@ -171,17 +171,17 @@ export default function Page() {
             labelOption="sustain"
             value={value}
             onChange={handleChange}
-            placeholder={hasTodayDiary ? "오늘의 일기를 이미 작성했어요" : "50자 이내로 입력"}
+            placeholder={hasTodayDiary ? "오늘의 일기를 이미 작성했어요" : "50자 이내로 입력해주세요"}
             disabled={hasTodayDiary || isChecking || isLoading}
             style={{ textAlign: 'left' }}
           />
           <div style={{ 
-            marginTop: '8px', 
+            margin: '0 22px 24px 0', 
             fontSize: '14px', 
             color: hasError ? '#f04452' : '#8b95a1',
             textAlign: 'right'
           }}>
-            {hasTodayDiary ? '내일 또 만나요!' : (errorMessage || characterCount)}
+            {hasTodayDiary ? '내일 또 만나요' : (errorMessage || characterCount)}
           </div>
         </div>
         <Button 
@@ -191,8 +191,10 @@ export default function Page() {
           disabled={(!hasTodayDiary && (!isSubmittable || isLoading || isChecking))} 
           onClick={handleConfirm}
           variant={hasTodayDiary ? "weak" : "fill"}
+          size="large"
+          style={{ width: '100%' }}
         >
-          {hasTodayDiary ? '그래프를 확인해요요' : (isLoading ? '분석 중...' : '작성 완료')}
+          {hasTodayDiary ? '그래프 확인하기' : (isLoading ? '분석하고 있어요' : '작성하기')}
         </Button>
       </div>
 
