@@ -99,19 +99,19 @@ export function validateText(text: string): ValidationResult {
 
   // 줄바꿈 체크
   if (hasLineBreak(text)) {
-    return { isValid: false, errorMessage: '줄바꿈은 입력할 수 없습니다.' };
+    return { isValid: false, errorMessage: '줄바꿈은 입력할 수 없어요.' };
   }
 
   // 최대 길이 체크
   if (!meetsMaxLength(text)) {
-    return { isValid: false, errorMessage: `최대 ${MAX_LENGTH}자까지 입력 가능합니다.` };
+    return { isValid: false, errorMessage: `최대 ${MAX_LENGTH}자까지 입력할 수 있어요.` };
   }
 
   const trimmedText = trimText(text);
 
   // 공백만 있는지 체크
   if (!trimmedText) {
-    return { isValid: false, errorMessage: '공백만 입력할 수 없습니다.' };
+    return { isValid: false, errorMessage: '공백만 입력할 수 없어요.' };
   }
 
   // 공백 제외 최소 길이 체크
@@ -121,12 +121,12 @@ export function validateText(text: string): ValidationResult {
 
   // 자모음만 있는지 체크
   if (hasOnlyJamoeum(trimmedText)) {
-    return { isValid: false, errorMessage: '자음이나 모음만 입력할 수 없습니다.' };
+    return { isValid: false, errorMessage: '자음이나 모음만 입력할 수 없어요.' };
   }
 
   // 동일 문자 반복 체크
   if (hasExcessiveRepetition(trimmedText)) {
-    return { isValid: false, errorMessage: '동일한 문자를 10자 이상 반복할 수 없습니다.' };
+    return { isValid: false, errorMessage: '동일한 문자를 10자 이상 반복할 수 없어요.' };
   }
 
   return { isValid: true };

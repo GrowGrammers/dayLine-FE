@@ -11,12 +11,14 @@ import { getToday, formatDate } from '../utils/dateUtils';
 import { useTextInput } from '../hooks/useTextInput';
 import { useHasTodayDiary, useSaveDiary, DIARY_KEYS } from '../hooks/useDiaryData';
 import { analyzeDiaryText } from '../services/gpt';
+import { AdPromotionBottomSheet } from '../components/bottomSheets/AdPromotionBottomSheet';
 //import { adaptive } from '@toss/tds-colors';
 
 export default function Page() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
+  const [isAdSheetOpen, setIsAdSheetOpen] = useState(false);
   
   const {
     value,
@@ -56,56 +58,64 @@ export default function Page() {
     }
 
     if (isSubmittable && !isLoading) {
-      try {
-        setIsLoading(true);
-        
-        // 1단계: GPT API 호출하여 감정 분석
-        console.log('GPT API 호출 시작...');
-        const gptResponse = await analyzeDiaryText(trimmedValue);
-        
-        console.log('GPT API 응답 성공:', gptResponse);
+      // 바텀시트 열기
+      setIsAdSheetOpen(true);
+    }
+  };
 
-        
-        // 2단계: GPT 응답 검증
-        if (!gptResponse || !gptResponse.line || typeof gptResponse.score !== 'number') {
-          throw new Error('GPT 응답이 올바르지 않습니다.');
-        }
-        
-        // 3단계: 백엔드에 저장 (useSaveDiary 사용)
-        console.log('백엔드 저장 요청 시작...');
-        const dateString = formatDate(today, '-'); // YYYY-MM-DD 형식
-        
-        // mutateAsync는 onSuccess(invalidateQueries)가 완료될 때까지 기다림
-        await saveDiaryMutation({
-          date: dateString,
-          content: gptResponse.line,
-          emotion: gptResponse.score,
-        });
+  const processDiarySubmission = async () => {
+    // 바텀시트 닫기
+    setIsAdSheetOpen(false);
 
-        console.log('백엔드 저장 및 데이터 갱신 완료!');
-        
-        // 4단계: 성공 후 다음 페이지로 이동
-        navigate('/stats');
-      } catch (error) {
-        console.error('에러 발생:', error);
-        
-        // 사용자 친화적인 에러 메시지
-        if (error instanceof Error) {
-          if (error.message.includes('로그인')) {
-            alert('로그인이 필요해요.');
-          } else if (error.message.includes('GPT')) {
-            alert('일기 분석 중 오류가 발생했어요. 다시 시도해주세요.');
-          } else if (error.message.includes('네트워크')) {
-            alert('네트워크 연결을 확인해주세요.');
-          } else {
-            alert('저장 중 오류가 발생했어요. 다시 시도해주세요.');
-          }
-        } else {
-          alert('알 수 없는 오류가 발생했어요. 다시 시도해주세요.');
-        }
-      } finally {
-        setIsLoading(false);
+    try {
+      setIsLoading(true);
+      
+      // 1단계: GPT API 호출하여 감정 분석
+      console.log('GPT API 호출 시작...');
+      const gptResponse = await analyzeDiaryText(trimmedValue);
+      
+      console.log('GPT API 응답 성공:', gptResponse);
+
+      
+      // 2단계: GPT 응답 검증
+      if (!gptResponse || !gptResponse.line || typeof gptResponse.score !== 'number') {
+        throw new Error('GPT 응답이 올바르지 않습니다.');
       }
+      
+      // 3단계: 백엔드에 저장 (useSaveDiary 사용)
+      console.log('백엔드 저장 요청 시작...');
+      const dateString = formatDate(today, '-'); // YYYY-MM-DD 형식
+      
+      // mutateAsync는 onSuccess(invalidateQueries)가 완료될 때까지 기다림
+      await saveDiaryMutation({
+        date: dateString,
+        content: gptResponse.line,
+        emotion: gptResponse.score,
+      });
+
+      console.log('백엔드 저장 및 데이터 갱신 완료!');
+      
+      // 4단계: 성공 후 다음 페이지로 이동
+      navigate('/stats');
+    } catch (error) {
+      console.error('에러 발생:', error);
+      
+      // 사용자 친화적인 에러 메시지
+      if (error instanceof Error) {
+        if (error.message.includes('로그인')) {
+          alert('로그인이 필요해요.');
+        } else if (error.message.includes('GPT')) {
+          alert('일기 분석에 실패했어요. 다시 시도해주세요.');
+        } else if (error.message.includes('네트워크')) {
+          alert('네트워크 연결을 확인해주세요.');
+        } else {
+          alert('저장에 실패했어요. 다시 시도해주세요.');
+        }
+      } else {
+        alert('알 수 없는 오류가 있어요. 다시 시도해주세요.');
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -131,7 +141,7 @@ export default function Page() {
             일기를 분석하고 있어요
           </Text>
           <Text typography="t6" color={adaptive.grey600}>
-            잠시만 기다려주세요...
+            잠시만 기다려주세요
           </Text>
           {/* 광고가 들어갈 자리 */}
           <div style={{
@@ -151,9 +161,9 @@ export default function Page() {
         </div>
       )}
 
-      <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
         {/* 숫자키패드 사용을 위해서는 type="number" 대신 inputMode="numeric"를 사용해주세요. */}
-        <div>
+        <div style={{ flex: 1 }}>
           <TextField.Clearable
             variant="box"
             hasError={hasError}
@@ -161,17 +171,17 @@ export default function Page() {
             labelOption="sustain"
             value={value}
             onChange={handleChange}
-            placeholder={hasTodayDiary ? "오늘의 일기를 이미 작성했어요" : "50자 이내로 입력"}
+            placeholder={hasTodayDiary ? "오늘의 일기를 이미 작성했어요" : "50자 이내로 입력해주세요"}
             disabled={hasTodayDiary || isChecking || isLoading}
             style={{ textAlign: 'left' }}
           />
           <div style={{ 
-            marginTop: '8px', 
+            margin: '0 22px 24px 0', 
             fontSize: '14px', 
             color: hasError ? '#f04452' : '#8b95a1',
             textAlign: 'right'
           }}>
-            {hasTodayDiary ? '내일 또 만나요!' : (errorMessage || characterCount)}
+            {hasTodayDiary ? '내일 또 만나요' : (errorMessage || characterCount)}
           </div>
         </div>
         <Button 
@@ -180,10 +190,19 @@ export default function Page() {
           // hasTodayDiary일 때는 활성화하여 "보러가기" 버튼으로 사용
           disabled={(!hasTodayDiary && (!isSubmittable || isLoading || isChecking))} 
           onClick={handleConfirm}
+          variant={hasTodayDiary ? "weak" : "fill"}
+          size="large"
+          style={{ width: '100%' }}
         >
-          {hasTodayDiary ? '그래프 보러가기' : (isLoading ? '분석 중...' : '작성 완료')}
+          {hasTodayDiary ? '그래프 확인하기' : (isLoading ? '분석하고 있어요' : '작성하기')}
         </Button>
       </div>
+
+      <AdPromotionBottomSheet
+        open={isAdSheetOpen}
+        onClose={() => setIsAdSheetOpen(false)}
+        onNavigate={processDiarySubmission}
+      />
     </>
   );
 }

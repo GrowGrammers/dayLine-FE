@@ -37,7 +37,7 @@ export const AgreementBottomSheet = ({
       
       const errorMessage = error instanceof Error 
         ? error.message 
-        : '로그인에 실패했습니다. 다시 시도해주세요.';
+        : '로그인에 실패했어요. 다시 시도해주세요.';
       
       alert(errorMessage);
     } finally {

@@ -61,7 +61,7 @@ export default function Page() {
         display: 'flex', 
         flexDirection: 'column', 
         alignItems: 'center', 
-        justifyContent: 'center',
+        justifyContent: 'center', 
         minHeight: '60vh',
         padding: '24px',
         gap: '16px'
@@ -102,33 +102,45 @@ export default function Page() {
 
   // 2. 통계 화면 렌더링 (showComplete가 false일 때)
   return (
-    <>
-      <Tab
-        fluid={false}
-        size="large"
-        style={{ backgroundColor: adaptive.background }}
-        onChange={(index) => setSelectedTab(index)}
-      >
-        <Tab.Item key="0-그래프" selected={selectedTab === 0}>
-          그래프
-        </Tab.Item>
-        <Tab.Item key="1-달력" selected={selectedTab === 1}>
-          달력
-        </Tab.Item>
-      </Tab>
+    <div>
+      <div style={{ flexShrink: 0 }}>
+        <Tab
+          fluid={false}
+          size="large"
+          onChange={(index) => setSelectedTab(index)}
+        >
+          <Tab.Item selected={selectedTab === 0}>
+            그래프
+          </Tab.Item>
+          <Tab.Item selected={selectedTab === 1}>
+            달력
+          </Tab.Item>
+        </Tab>
+      </div>
 
-      <ListHeader
-        title={
-          <ListHeader.TitleParagraph
-            color={adaptive.grey800}
-            fontWeight="bold"
-            typography="t5"
-          >
-            {currentYear}.{currentMonth + 1} 한 줄 
-          </ListHeader.TitleParagraph>
-        }
-        descriptionPosition="bottom"
-      />
+      {/* 탭 하단 구분선 - 스타일 명확화 */}
+      <div style={{ 
+        height: '1px', 
+        backgroundColor: '#e5e8eb', // adaptive.grey200과 유사한 명시적 색상 (안전장치)
+        width: '100%',
+        minHeight: '1px' // 최소 높이 보장
+      }} />
+
+      <div>
+        <ListHeader 
+          title={
+            <ListHeader.TitleParagraph
+              color={adaptive.grey800}
+              fontWeight="bold"
+              typography="t5"
+            >
+              {currentYear}.{currentMonth + 1}월 한 줄 
+            </ListHeader.TitleParagraph>
+          }
+          descriptionPosition="bottom"
+          style={{ padding: '36px 0 8px' }}
+        />
+      </div>
 
       {/* 탭에 따라 다른 Swiper 렌더링 */}
       {selectedTab === 0 ? (
@@ -139,6 +151,7 @@ export default function Page() {
           slidesPerView={1}
           initialSlide={currentMonth}
           onSlideChange={(swiper) => setCurrentMonth(swiper.activeIndex)}
+          style={{ height: '350px' }} // 달력 탭과 동일한 높이 지정
         >
           {months.map((month) => (
             <SwiperSlide key={month}>
@@ -161,7 +174,7 @@ export default function Page() {
           slidesPerView={1}
           initialSlide={currentMonth}
           onSlideChange={(swiper) => setCurrentMonth(swiper.activeIndex)}
-          style={{ height: '400px' }} // 세로 스크롤을 위해 높이 지정 필요
+          style={{ height: '350px' }} // 세로 스크롤을 위해 높이 지정 필요
         >
           {months.map((month) => (
             <SwiperSlide key={month}>
@@ -178,6 +191,6 @@ export default function Page() {
       )}
       
       <StatsDetailView entry={selectedEntry} selectedDate={selectedDate} />
-    </>
+    </div>
   );
 }
