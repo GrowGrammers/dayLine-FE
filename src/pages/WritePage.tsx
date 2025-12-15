@@ -7,12 +7,12 @@ import {
 } from '@toss/tds-mobile';
 import { adaptive } from '@toss/tds-colors';
 import { useQueryClient } from '@tanstack/react-query';
+import { GoogleAdMob } from '@apps-in-toss/web-framework';
 import { getToday, formatDate } from '../utils/dateUtils';
 import { useTextInput } from '../hooks/useTextInput';
 import { useHasTodayDiary, useSaveDiary, DIARY_KEYS } from '../hooks/useDiaryData';
 import { analyzeDiaryText } from '../services/gpt';
 import { AdPromotionBottomSheet } from '../components/bottomSheets/AdPromotionBottomSheet';
-//import { adaptive } from '@toss/tds-colors';
 
 export default function Page() {
   const navigate = useNavigate();
@@ -49,6 +49,21 @@ export default function Page() {
     });
   }, [queryClient, today]);
   
+  // 광고 로드
+  useEffect(() => {
+    GoogleAdMob.loadAdMobInterstitialAd({
+      options: {
+        adUnitId: 'ait-ad-test-interstitial-id'
+      },
+      onEvent: (event) => {
+        console.log('광고 이벤트:', event.type);
+      },
+      onError: (error) => {
+        console.error('광고 로드 실패:', error);
+      }
+    });
+  }, []);
+
   const handleConfirm = async () => {
     // 이미 작성된 경우 StatsPage로 이동
     if (hasTodayDiary) {
@@ -70,30 +85,62 @@ export default function Page() {
     try {
       setIsLoading(true);
       
-      // 1단계: GPT API 호출하여 감정 분석
-      console.log('GPT API 호출 시작...');
-      const gptResponse = await analyzeDiaryText(trimmedValue);
-      
-      console.log('GPT API 응답 성공:', gptResponse);
-
-      
-      // 2단계: GPT 응답 검증
-      if (!gptResponse || !gptResponse.line || typeof gptResponse.score !== 'number') {
-        throw new Error('GPT 응답이 올바르지 않습니다.');
-      }
-      
-      // 3단계: 백엔드에 저장 (useSaveDiary 사용)
-      console.log('백엔드 저장 요청 시작...');
-      const dateString = formatDate(today, '-'); // YYYY-MM-DD 형식
-      
-      // mutateAsync는 onSuccess(invalidateQueries)가 완료될 때까지 기다림
-      await saveDiaryMutation({
-        date: dateString,
-        content: gptResponse.line,
-        emotion: gptResponse.score,
+      // 광고 표시 Promise
+      const showAdPromise = new Promise<void>((resolve) => {
+        GoogleAdMob.showAdMobInterstitialAd({
+          options: {
+            adUnitId: 'ait-ad-test-interstitial-id'
+          },
+          onEvent: (event) => {
+            if (event.type === 'dismissed' || event.type === 'failedToShow') {
+              resolve();
+            }
+          },
+          onError: (error) => {
+            console.error('광고 표시 실패:', error);
+            resolve(); // 에러 발생 시에도 진행
+          }
+        });
       });
+      
+      // 데이터 처리 Promise
+      const dataPromise = (async () => {
+        // 1단계: GPT API 호출하여 감정 분석
+        console.log('GPT API 호출 시작...');
+        const gptResponse = await analyzeDiaryText(trimmedValue);
+        
+        console.log('GPT API 응답 성공:', gptResponse);
+        
+        // 2단계: GPT 응답 검증
+        if (!gptResponse || !gptResponse.line || typeof gptResponse.score !== 'number') {
+          throw new Error('GPT 응답이 올바르지 않습니다.');
+        }
+        
+        // 3단계: 백엔드에 저장 (useSaveDiary 사용)
+        console.log('백엔드 저장 요청 시작...');
+        const dateString = formatDate(today, '-'); // YYYY-MM-DD 형식
+        
+        // mutateAsync는 onSuccess(invalidateQueries)가 완료될 때까지 기다림
+        await saveDiaryMutation({
+          date: dateString,
+          content: gptResponse.line,
+          emotion: gptResponse.score,
+        });
 
-      console.log('백엔드 저장 및 데이터 갱신 완료!');
+        console.log('백엔드 저장 및 데이터 갱신 완료!');
+      })();
+
+      // Unhandled Rejection 방지를 위해 catch 처리
+      const safeDataPromise = dataPromise.catch(err => ({ error: err }));
+
+      // 광고가 닫힐 때까지 대기
+      await showAdPromise;
+      
+      // 데이터 처리 결과 확인
+      const result = await safeDataPromise;
+      if (result && 'error' in result) {
+        throw result.error;
+      }
       
       // 4단계: 성공 후 다음 페이지로 이동
       navigate('/stats');
@@ -121,7 +168,7 @@ export default function Page() {
   
   return (
     <>
-      {/* 로딩 오버레이 (전면 광고 영역) */}
+      {/* 로딩 오버레이 */}
       {isLoading && (
         <div style={{
           position: 'fixed',
@@ -143,21 +190,6 @@ export default function Page() {
           <Text typography="t6" color={adaptive.grey600}>
             잠시만 기다려주세요
           </Text>
-          {/* 광고가 들어갈 자리 */}
-          <div style={{
-            width: '300px',
-            height: '250px',
-            backgroundColor: adaptive.grey100,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginTop: '20px',
-            borderRadius: '12px'
-          }}>
-             <Text typography="t6" color={adaptive.grey500}>
-                (광고 영역)
-             </Text>
-          </div>
         </div>
       )}
 
