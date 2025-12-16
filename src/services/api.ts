@@ -1,7 +1,7 @@
 // 기본 API 클라이언트 설정
-// 백엔드 개발 완료 후 실제 API URL로 변경 필요
+// 환경 변수로 baseURL 관리 (.env.development, .env.production)
 
-const API_BASE_URL = '/api'; // 임시 API 경로
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/dayline/api';
 
 export class ApiError extends Error {
   status?: number;

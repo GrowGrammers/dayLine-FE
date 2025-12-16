@@ -5,6 +5,7 @@ import type {
   TossLoginData,
 } from '../types/tossAuth';
 import type { SuccessResponse } from '../types/api';
+//import { apiRequest } from './api';
 
 /**
  * 토스 앱 환경인지 확인
@@ -72,8 +73,10 @@ export async function loginToBackend(
   };
 
   try {
-    // apiRequest 대신 fetch를 직접 사용하여 헤더와 바디 모두 검사
-    const response = await fetch('/api/v1/auth/toss/login', {
+    // Response 헤더를 확인하기 위해 fetch를 직접 사용
+    // apiRequest는 헤더 접근이 제한되므로 여기서는 fetch 직접 사용 유지
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/dayline/api';
+    const response = await fetch(`${API_BASE_URL}/v1/auth/toss/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

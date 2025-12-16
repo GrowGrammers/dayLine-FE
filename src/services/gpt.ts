@@ -19,7 +19,8 @@ export async function analyzeDiaryText(text: string): Promise<DiaryAnalysisRespo
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
 
   if (!apiKey || apiKey === 'your_api_key_here') {
-    throw new Error('OpenAI API 키가 설정되지 않았습니다. .env.local 파일을 확인해주세요.');
+    throw new Error('OpenAI API 키가 설정되지 않았습니다. .env 파일을 확인해주세요.');
+    alert('OpenAI API 키가 설정되지 않았습니다. .env 파일을 확인해주세요.');
   }
 
   try {
