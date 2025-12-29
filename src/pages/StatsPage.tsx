@@ -151,7 +151,7 @@ export default function Page() {
           slidesPerView={1}
           initialSlide={currentMonth}
           onSlideChange={(swiper) => setCurrentMonth(swiper.activeIndex)}
-          style={{ height: '350px' }} // 달력 탭과 동일한 높이 지정
+          style={{ height: '350px' }}
         >
           {months.map((month) => (
             <SwiperSlide key={month}>
@@ -166,15 +166,14 @@ export default function Page() {
           ))}
         </Swiper>
       ) : (
-        // 달력 탭: 상하 스크롤
+        // 달력 탭: 좌우 스크롤
         <Swiper
           key="calendar-swiper"
-          direction="vertical"
           spaceBetween={0}
           slidesPerView={1}
           initialSlide={currentMonth}
           onSlideChange={(swiper) => setCurrentMonth(swiper.activeIndex)}
-          style={{ height: '350px' }} // 세로 스크롤을 위해 높이 지정 필요
+          style={{ height: '350px' }}
         >
           {months.map((month) => (
             <SwiperSlide key={month}>
