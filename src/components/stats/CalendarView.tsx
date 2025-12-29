@@ -73,7 +73,7 @@ export const CalendarView = ({ year, month, data, selectedDate, onSelectDate }: 
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                border: isSelected ? `2px solid ${adaptive.grey700}` : 'none',
+                border: isSelected ? `2px solid ${adaptive.grey200}` : 'none',
                 boxSizing: 'border-box',
               }}>
                 <Text 
