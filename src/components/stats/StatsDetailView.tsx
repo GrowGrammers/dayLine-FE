@@ -24,6 +24,14 @@ export const StatsDetailView = ({ entry, selectedDate }: StatsDetailViewProps) =
   // 날짜 포맷팅 (YYYY.MM.DD)
   const formattedDate = selectedDate.replace(/-/g, '.');
 
+  // 점수에 따른 색상 결정
+  const getBadgeColor = (score: number): "red" | "yellow" | "green" | "blue" => {
+    if (score <= 30) return "red";
+    if (score <= 50) return "yellow";
+    if (score <= 70) return "green";
+    return "blue";
+  };
+
   return (
     <div>
       <ListHeader
@@ -41,7 +49,7 @@ export const StatsDetailView = ({ entry, selectedDate }: StatsDetailViewProps) =
       />
       
       <div style={{ marginBottom: '16px', display: 'flex' , padding: '0 24px'}}>
-        <Badge variant="weak" color="blue" size="medium">
+        <Badge variant="weak" color={getBadgeColor(entry.score)} size="medium">
           + {entry.score}
         </Badge>
       </div>
